@@ -6,6 +6,7 @@
    "javascript": [
       "./lib/moment.min.js",
       "./lib/moment-range.js",
+      "pi-scope-change-chart.js",
       "App.js"
    ],
    "css": [
