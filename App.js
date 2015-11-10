@@ -7,14 +7,16 @@ Ext.define('CustomApp', {
         {xtype:'container',itemId:'settings_box'}
     ],
 
-    devMode : true,
-
+    devMode : false,
     baseline : [],
-
+    baselineIndex : 0,
+    todayIndex : -1,
     fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 
     	'AcceptedLeafStoryCount', 'AcceptedLeafStoryPlanEstimateTotal', 
     	'LeafStoryCount', 'LeafStoryPlanEstimateTotal','PercentDoneByStoryCount',
     	'PercentDoneByStoryPlanEstimate'],
+
+    seriesKeys : ['BaselineScope','BaselineScopeInProgress','BaselineScopeCompleted','AddedScope','AddedScopeInProgress','AddedScopeCompleted'],
 
     isExternal: function(){
         return typeof(this.getAppId()) == 'undefined';
@@ -92,7 +94,12 @@ Ext.define('CustomApp', {
     	})
     	var dr = that.dateRange(_.first(timeboxes[0]));
 
+        // get todays index into the release
+        that.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
+        console.log("todayIndex",that.todayIndex);
+        // get the index of the baseline date
         that.baselineIndex = that.getBaselineIndex(dr,timeboxes[1]);
+        that.baseline = [];
 
     	// iterate each day of the release
 		var data = _.map(dr,function( day, index ) {
@@ -126,7 +133,7 @@ Ext.define('CustomApp', {
 
         var that = this;
 
-    	var seriesKeys = _.uniq(_.flatten(_.map(data,function(d){ return _.keys(d) })));
+    	// var seriesKeys = _.uniq(_.flatten(_.map(data,function(d){ return _.keys(d) })));
 
         var countReducer = function(features) {
             return features.length;
@@ -137,12 +144,21 @@ Ext.define('CustomApp', {
                 return memo + feature.LeafStoryPlanEstimateTotal }, 0 );
         }
 
-    	var series = _.map(seriesKeys,function(key){
+    	var series = _.map(that.seriesKeys,function(key){
     		return {
     			name : key,
     			data : _.map(data,function(d,x){ 
-                    if (_.isUndefined(d[key])) {
-                        return null;
+
+                    if (_.isUndefined(d[key]))  {
+                        return { 
+                            x : x, y : null, features : null
+                        };
+                    }
+
+                    if( (that.todayIndex >= 0) && (x > that.todayIndex)) {
+                        return { 
+                            x : x, y : null, features : null
+                        };
                     }
 
                     var value = that.getSetting('aggregateType')==='Points' 
@@ -151,9 +167,7 @@ Ext.define('CustomApp', {
                     value = key.startsWith("Baseline") ? value : value * -1;                        
 
                     return {
-                        x : x,
-                        y : value,
-                        features : d[key]
+                        x : x, y : value, features : d[key]
                     }
     		})
         }
