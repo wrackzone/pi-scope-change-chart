@@ -4,14 +4,19 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     scopeType : 'release',
     items : [
-        {xtype:'container',itemId:'settings_box'}
+        { xtype:'container',itemId:'settings_box'}
+        // { xtype:'container',itemId:'chart_box'},
+        // { xtype:'container',itemId:'table_box', layout : 'column', columns : 1, 
+        //     items : [ { xtype:'container',itemId:'items_box', width:900},
+        //               { xtype:'container',itemId:'changed_box'}]
+        // }
     ],
 
     devMode : false,
     baseline : [],
     baselineIndex : 0,
     todayIndex : -1,
-    fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 
+    fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 'PreliminaryEstimate',
     	'AcceptedLeafStoryCount', 'AcceptedLeafStoryPlanEstimateTotal', 
     	'LeafStoryCount', 'LeafStoryPlanEstimateTotal','PercentDoneByStoryCount',
     	'PercentDoneByStoryPlanEstimate'],
@@ -31,24 +36,58 @@ Ext.define('CustomApp', {
     },
 
     _launch : function() {
-        this.onScopeChange();
-
+        // this.onScopeChange();
+        if (this.devMode===true) {
+            this.onScopeChange({
+                getRecord : function() {
+                    return {
+                        raw : {
+                            Name: "2015 Q4",
+                            ReleaseDate: "2016-01-16T06:59:59.000Z",
+                            ReleaseStartDate: "2015-10-12T06:00:00.000Z"
+                        }
+                    }
+                }
+            });
+        } else {
+            var tbScope = this.getContext().getTimeboxScope();
+            if (_.isUndefined(tbScope)) {
+                this.add({ html : "This app must be installed in a Release filtered page."});
+            } else {
+                this.onScopeChange( tbScope );
+            }
+        }
     },
 
     onScopeChange : function( scope ) {
+        var release = scope.getRecord().raw;
         var that = this;
+        that.clear();
 
         if (_.isUndefined(that.piTypes)) {
             that._loadPortfolioItemTypes(function(types) {
                 that.piTypes = types;
-                that.readData(scope);
+                that._loadPreliminaryEstimateValues(function(vals){
+                    that.prelimEstimateValues = vals;
+                    that.readData(release);
+                })
             });
         } else {
-            that.readData(scope);
+            that.readData(release);
         }
     },
 
- 	readData: function(scope) {
+    clear : function() {
+        var that = this;
+        if (!_.isUndefined(that.itemsTable)) {
+            that.remove(that.itemsTable);
+        }
+        if (!_.isUndefined(that.chart)) {
+            that.remove(that.chart);
+        }
+    },
+
+ 	readData: function(release) {
  		var that = this;
 
  		if (that.devMode===true) {
@@ -57,10 +96,12 @@ Ext.define('CustomApp', {
  			return;
  		}
 
- 		that.loadTimeBoxes(scope).then( {
+ 		that.loadTimeBoxes(release).then( {
  			success : function(timeboxes) {
+                console.log("timeboxes",timeboxes);
 				that.getSnapshots(timeboxes[0]).then({
 					success : function(snapshots) {
+                        console
 						localStorage.setItem('timeBoxes', JSON.stringify(timeboxes));
 						localStorage.setItem('snapshots', JSON.stringify(snapshots));
 						that.process(timeboxes,snapshots);
@@ -88,6 +129,7 @@ Ext.define('CustomApp', {
     },
 
     process : function(timeboxes,snapshots) {
+
     	var that = this;
     	_.each(snapshots,function(s){
     		s.range = moment.range(s._ValidFrom,s._ValidTo);
@@ -103,6 +145,7 @@ Ext.define('CustomApp', {
 
     	// iterate each day of the release
 		var data = _.map(dr,function( day, index ) {
+
 			// filter to just the snapshots for that day
 			var daySnapshots = _.filter(snapshots,function(s){
 				return day.within(s.range);
@@ -132,6 +175,7 @@ Ext.define('CustomApp', {
     prepareChartData : function( data ) {
 
         var that = this;
+        var reducerFunction = null;
 
     	// var seriesKeys = _.uniq(_.flatten(_.map(data,function(d){ return _.keys(d) })));
 
@@ -142,6 +186,23 @@ Ext.define('CustomApp', {
         var pointsReducer = function(features) {
             return _.reduce(features,function(memo,feature) { 
                 return memo + feature.LeafStoryPlanEstimateTotal }, 0 );
+        }
+
+        var estimateReducer = function(features) {
+            console.log("features",features);
+            return _.reduce(features,function(memo,feature) { 
+                var estimate = _.find(that.prelimEstimateValues,function(v) {
+                    return feature.PreliminaryEstimate === v.ObjectID;
+                });
+                return memo + (_.isUndefined(estimate) ? 0 : estimate.Value) }, 0 );
+        }
+
+        switch( that.getSetting('aggregateType') ) {
+
+            case 'Points': reducerFunction = pointsReducer; break;
+            case 'Count': reducerFunction = countReducer; break;
+            case 'Preliminary Estimate': reducerFunction = estimateReducer; break;
+
         }
 
     	var series = _.map(that.seriesKeys,function(key){
@@ -161,9 +222,7 @@ Ext.define('CustomApp', {
                         };
                     }
 
-                    var value = that.getSetting('aggregateType')==='Points' 
-                        ? pointsReducer(d[key]) 
-                        : countReducer(d[key]);
+                    var value = reducerFunction( d[key] );
                     value = key.startsWith("Baseline") ? value : value * -1;                        
 
                     return {
@@ -175,6 +234,66 @@ Ext.define('CustomApp', {
         console.log("series",series);
 
     	return { series : series };
+    },
+
+    createFilterFromFeatures : function(features) {
+
+        var filter = null;
+        _.each(features,function(f){
+            filter = filter === null ?
+                Ext.create('Rally.data.wsapi.Filter', {
+                    property: 'ObjectID', operator: '=', value: f.ObjectID
+                }) :
+                filter.or( {
+                    property: 'ObjectID', operator: '=', value: f.ObjectID
+                } )
+        });
+        console.log(filter.toString());
+        return filter;
+    },
+
+    showItemsTable : function( event ) {
+        var that = this;
+        console.log("click(a)",event);
+        var filter = that.createFilterFromFeatures(event.features);
+
+        Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
+            models: ['PortfolioItem/Feature'],
+            filters : [filter],
+            autoLoad: true,
+            enableHierarchy: true
+        }).then({
+            success: function(store) {
+                if (!_.isUndefined(that.itemsTable)) {
+                    // that.down("#items_box").remove(that.itemsTable);
+                    that.remove(that.itemsTable);
+                }
+                that.itemsTable = Ext.create('Rally.ui.grid.TreeGrid',{
+                    xtype: 'rallytreegrid',
+                    store: store,
+                    context: that.getContext(),
+                    enableEditing: false,
+                    enableBulkEdit: false,
+                    shouldShowRowActionsColumn: false,
+                    enableRanking: false,
+                    columnCfgs: [
+                        'Name',
+                        'State',
+                        'Owner',
+                        'Project',
+                        { dataIndex : 'PreliminaryEstimate', text : 'Size'},
+                        { dataIndex : 'PercentDoneByStoryCount', text : '% (C)'},
+                        { dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% (P)'},
+                        { dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Points'},
+                        { dataIndex : 'LeafStoryCount', text : 'Count'}
+
+                    ]
+                });
+                // that.down("#items_box").add(that.itemsTable);
+                that.add(that.itemsTable);
+            },
+            scope: this
+        });
     },
 
     createChart : function( chartData ) {
@@ -191,9 +310,15 @@ Ext.define('CustomApp', {
             itemId: 'rally-chart',
             chartData: chartData,
             iterationIndices : that.iterationIndices,
-            baselineIndex : that.baselineIndex
+            baselineIndex : that.baselineIndex,
+            app : that,
+            listeners : {
+                series_click : that.showItemsTable,
+                scope : this
+            }
         });
-
+        // console.log(that.down("#chart_box"));
+        // that.down("#chart_box").add(that.chart);
         that.add(that.chart);
 
     },
@@ -283,7 +408,9 @@ Ext.define('CustomApp', {
         return deferred.getPromise();
     },
 
-    loadTimeBoxes : function(scope) {
+    loadTimeBoxes : function(release) {
+
+        console.log("loadTimeBoxes",release);
 
     	var me = this;
 
@@ -291,7 +418,7 @@ Ext.define('CustomApp', {
     	me._loadAStoreWithAPromise(
 	            "Release", 
 	            ["Name","ReleaseStartDate","ReleaseDate"], 
-	            [{ property : "Name", operator : "=", value : scope.getRecord().get("Name") }]
+	            [{ property : "Name", operator : "=", value : release.Name }]
 	        ).then({
 	            scope: me,
 	            success: function(values) {
@@ -307,8 +434,8 @@ Ext.define('CustomApp', {
 	            "Iteration", 
 	            ["Name","StartDate","EndDate"], 
 	            [
-	            	{ property : "EndDate", operator : "<=", value : scope.getRecord().get("ReleaseDate") },
-	             	{ property : "EndDate", operator : ">=", value : scope.getRecord().get("ReleaseStartDate") }
+	            	{ property : "EndDate", operator : "<=", value : release.ReleaseDate },
+	             	{ property : "EndDate", operator : ">=", value : release.ReleaseStartDate }
 	            ], {
 	            	projectScopeDown : false
 	            }
@@ -343,6 +470,8 @@ Ext.define('CustomApp', {
         if (!_.isUndefined(order)&&!_.isNull(order)) {
             config.order = order;
         }
+
+        console.log("config",config);
 
         Ext.create('Rally.data.wsapi.Store', config ).load({
             callback : function(records, operation, successful) {
@@ -397,7 +526,7 @@ Ext.define('CustomApp', {
 
         var aggregateStore = new Ext.data.ArrayStore({
             fields: ['aggregate'],
-            data : [['Count'],['Points']]
+            data : [['Count'],['Points'],['Preliminary Estimate']]
         });  
 
         var baselineTypeStore = new Ext.data.ArrayStore({
@@ -436,6 +565,27 @@ Ext.define('CustomApp', {
             }
 
         ];
+    },
+
+ // configs.push({ model : "PreliminaryEstimate", 
+ //                       fetch : ['Name','ObjectID','Value'], 
+ //                       filters : [] 
+ //        });
+    _loadPreliminaryEstimateValues : function(callback) {
+
+        var piStore = Ext.create("Rally.data.WsapiDataStore", {
+            model: 'PreliminaryEstimate',
+            autoLoad: true,
+            fetch : true,
+            filters: [],
+            listeners: {
+                load: function(store, records, success) {
+                    var piVals = _.map(records,function(r){ return r.data });
+                    callback(piVals);
+                },
+                scope: this
+            },
+        });
     },
 
     _loadPortfolioItemTypes : function(callback) {
