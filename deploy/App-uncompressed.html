@@ -605,8 +605,10 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 			return;
 		}
 
+		that.showMask("Loading timeboxes...");
 		that.loadTimeBoxes(release).then( {
 			success : function(timeboxes) {
+				that.showMask("Loading snapshots...");
 				console.log("timeboxes",timeboxes);
 				that.getSnapshots(timeboxes[0]).then({
 					success : function(snapshots) {
@@ -641,6 +643,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	process : function(timeboxes,snapshots) {
 
 		var that = this;
+		that.showMask("Processing snapshots...");
 
 		// add a range object for each snapshot, we use it later to see if the day is in that range
 		_.each(snapshots,function(s){
@@ -692,6 +695,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	// returns a function to aggregate the features based on the app configuration
 	getReducerFunction : function() {
 
+		var that = this;
 		var reducerFn = null;
 
 		// simple count of features
@@ -729,6 +733,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	prepareChartData : function( data ) {
 
 		var that = this;
+		that.showMask("Preparing chart...");
 
 		var reducerFunction = that.getReducerFunction();
 
@@ -784,6 +789,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 
 	// called when a data value is clicked. Shows a grid of the features that make up that data point.
 	showItemsTable : function( event ) {
+		console.log("event",event);
 		var that = this;
 		var filter = that.createFilterFromFeatures(event.features);
 
@@ -829,8 +835,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	createChart : function( chartData ) {
 
 		var that = this;
-
-		that.unmask();
+		that.hideMask();
 
 		if (!_.isUndefined(that.chart)) {
 			that.remove(that.chart);
@@ -843,6 +848,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 			baselineIndex : that.baselineIndex,
 			app : that,
 			listeners : {
+				// called when user clicks on a series in the chart
 				series_click : that.showItemsTable,
 				scope : this
 			}
@@ -1122,7 +1128,18 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 				scope: this
 			}
 		});
-	}
+	},
+
+	showMask: function(msg) {
+        if ( this.getEl() ) { 
+            this.getEl().unmask();
+            this.getEl().mask(msg);
+        }
+    },
+
+    hideMask: function() {
+        this.getEl().unmask();
+    }
 });
 
 

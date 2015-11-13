@@ -99,8 +99,10 @@ Ext.define('CustomApp', {
 			return;
 		}
 
+		that.showMask("Loading timeboxes...");
 		that.loadTimeBoxes(release).then( {
 			success : function(timeboxes) {
+				that.showMask("Loading snapshots...");
 				console.log("timeboxes",timeboxes);
 				that.getSnapshots(timeboxes[0]).then({
 					success : function(snapshots) {
@@ -135,6 +137,7 @@ Ext.define('CustomApp', {
 	process : function(timeboxes,snapshots) {
 
 		var that = this;
+		that.showMask("Processing snapshots...");
 
 		// add a range object for each snapshot, we use it later to see if the day is in that range
 		_.each(snapshots,function(s){
@@ -186,6 +189,7 @@ Ext.define('CustomApp', {
 	// returns a function to aggregate the features based on the app configuration
 	getReducerFunction : function() {
 
+		var that = this;
 		var reducerFn = null;
 
 		// simple count of features
@@ -223,6 +227,7 @@ Ext.define('CustomApp', {
 	prepareChartData : function( data ) {
 
 		var that = this;
+		that.showMask("Preparing chart...");
 
 		var reducerFunction = that.getReducerFunction();
 
@@ -278,6 +283,7 @@ Ext.define('CustomApp', {
 
 	// called when a data value is clicked. Shows a grid of the features that make up that data point.
 	showItemsTable : function( event ) {
+		console.log("event",event);
 		var that = this;
 		var filter = that.createFilterFromFeatures(event.features);
 
@@ -323,8 +329,7 @@ Ext.define('CustomApp', {
 	createChart : function( chartData ) {
 
 		var that = this;
-
-		that.unmask();
+		that.hideMask();
 
 		if (!_.isUndefined(that.chart)) {
 			that.remove(that.chart);
@@ -337,6 +342,7 @@ Ext.define('CustomApp', {
 			baselineIndex : that.baselineIndex,
 			app : that,
 			listeners : {
+				// called when user clicks on a series in the chart
 				series_click : that.showItemsTable,
 				scope : this
 			}
@@ -616,5 +622,16 @@ Ext.define('CustomApp', {
 				scope: this
 			}
 		});
-	}
+	},
+
+	showMask: function(msg) {
+        if ( this.getEl() ) { 
+            this.getEl().unmask();
+            this.getEl().mask(msg);
+        }
+    },
+
+    hideMask: function() {
+        this.getEl().unmask();
+    }
 });
