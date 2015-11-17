@@ -7,14 +7,14 @@ Ext.define('CustomApp', {
 		{ xtype:'container',itemId:'settings_box'}
 	],
 
-	devMode : false,
+	devMode : true,
 	baseline : [],
 	baselineIndex : 0,
 	todayIndex : -1,
 	fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 'PreliminaryEstimate',
 		'AcceptedLeafStoryCount', 'AcceptedLeafStoryPlanEstimateTotal', 
 		'LeafStoryCount', 'LeafStoryPlanEstimateTotal','PercentDoneByStoryCount',
-		'PercentDoneByStoryPlanEstimate'],
+		'PercentDoneByStoryPlanEstimate','Predecessors','Name'],
 
 	seriesKeys : ['BaselineScope','BaselineScopeInProgress','BaselineScopeCompleted','AddedScope','AddedScopeInProgress','AddedScopeCompleted'],
 
@@ -39,9 +39,9 @@ Ext.define('CustomApp', {
 				getRecord : function() {
 					return {
 						raw : {
-							Name: "2015 Q4",
-							ReleaseDate: "2016-01-16T06:59:59.000Z",
-							ReleaseStartDate: "2015-10-12T06:00:00.000Z"
+							Name: "Release 4",
+							ReleaseDate: "2015-12-31T06:59:59.000Z",
+							ReleaseStartDate: "2015-10-01T06:00:00.000Z"
 						}
 					};
 				}
@@ -93,21 +93,21 @@ Ext.define('CustomApp', {
 	readData: function(release) {
 		var that = this;
 
-		if (that.devMode===true) {
-			that.process( JSON.parse(localStorage.getItem("timeBoxes")), 
-						JSON.parse(localStorage.getItem("snapshots")));
-			return;
-		}
+		// if (that.devMode===true) {
+		// 	that.process( JSON.parse(localStorage.getItem("timeBoxes")), 
+		// 				JSON.parse(localStorage.getItem("snapshots")));
+		// 	return;
+		// }
 
 		that.showMask("Loading timeboxes...");
 		that.loadTimeBoxes(release).then( {
 			success : function(timeboxes) {
 				that.showMask("Loading snapshots...");
-				console.log("timeboxes",timeboxes);
 				that.getSnapshots(timeboxes[0]).then({
 					success : function(snapshots) {
 						localStorage.setItem('timeBoxes', JSON.stringify(timeboxes));
 						localStorage.setItem('snapshots', JSON.stringify(snapshots));
+						console.log("snapshots",snapshots);
 						that.process(timeboxes,snapshots);
 					}
 				});
@@ -119,6 +119,8 @@ Ext.define('CustomApp', {
 	// The baseline date is based on the selected configuration
 	getBaselineIndex : function(range,iterations) {
 
+		// console.log("iterations",iterations);
+
 		var that = this;
 		// [['End of first Day'],['End of first Sprint'],['Day Index'],['Specific Date']]
 
@@ -128,6 +130,7 @@ Ext.define('CustomApp', {
 		if (that.getSetting("baselineType") ==='End of first Sprint') {
 			var iterationEndDate = moment( moment(_.first(iterations).EndDate).format("M/D/YYYY"));
 			var x = _.findIndex(range, iterationEndDate );
+			// console.log("iterations",iterations,iterationEndDate,x);
 			return x;
 		}
 		return 0;
@@ -148,6 +151,7 @@ Ext.define('CustomApp', {
 
 		// get todays index into the release
 		that.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
+		console.log("today",that.todayIndex);
 		
 		// get the index of the baseline date
 		that.baselineIndex = that.getBaselineIndex(dr,timeboxes[1]);
@@ -160,6 +164,7 @@ Ext.define('CustomApp', {
 			var daySnapshots = _.filter(snapshots,function(s){
 				return day.within(s.range);
 			});
+
 			// group the snapshots by id (there may be more than one in each day)
 			var groupedById = _.groupBy(daySnapshots,"ObjectID");
 			// get just the last snapshot for each day
@@ -171,8 +176,9 @@ Ext.define('CustomApp', {
 				that.baseline = dayFeatures;
 			}
 			var groupedDayFeatures = _.groupBy(dayFeatures,function(f) {
-				return that.categorize(f);
+				return that.categorize(f,index);
 			});
+			console.log("day:",index,groupedDayFeatures);
 			return groupedDayFeatures;
 		});
 
@@ -183,6 +189,74 @@ Ext.define('CustomApp', {
 		that.iterationIndices = that.dateIndexes( dr, _.map(timeboxes[1],function(i){ return moment(i.EndDate);}));
 
 		that.createChart(that.prepareChartData(data));
+
+	},
+
+	// returns an array of features that have been added or removed since the baseline
+	getScopeChangeFeatures : function(chart,x) {
+
+		var that = this;
+
+		// aggregate the features for all series for the selected data
+		var currentFeatures = _.compact(_.flatten(_.map(chart.series,function(s) { return s.data[x].features })));
+		var previousFeatures = that.baseline;
+
+		// get feature ids for comparison
+		var cFeatures = _.map( currentFeatures, function(f) { return f.FormattedID; });
+		var pFeatures = _.map( previousFeatures, function(f) { return f.FormattedID; });
+
+		var removed = _.difference(pFeatures, cFeatures);
+		var added = _.difference(cFeatures, pFeatures);
+
+		var findit = function( features, fid ) {
+			return _.find( features, function(f){ return f.FormattedID === fid; });
+		}
+
+		var r = _.map ( removed, function(fid) { 
+			var f = findit(previousFeatures,fid);
+			f["Scope"] = "Removed";
+			return f;
+		});
+		console.log("r",r);
+
+		var a = _.map ( added, function(fid) { 
+			var f = findit(currentFeatures,fid);
+			f["Scope"] = "Added";
+			return f;
+		})
+		console.log("a",a);
+
+		return a.concat(r);
+
+	},
+
+	addScopeChangeTable : function( features ) {
+
+		var that = this;
+
+		// create the data store
+	    var store = new Ext.data.ArrayStore({
+	        fields: [
+	        	{name: 'Scope'},
+	           	{name: 'FormattedID' },
+	           	{name: 'Name' }
+	        ]
+	    });
+    	store.loadData(features);
+
+		var grid = new Ext.grid.GridPanel({
+	        store: store,
+	        columns: [
+	            { header: "Scope", sortable: true, dataIndex: 'Scope'},
+	            { header: "FormattedID", sortable: true, dataIndex: 'FormattedID'},
+	            { header: "Name", sortable: true, dataIndex: 'Name'},
+	        ],
+	        stripeRows: true,
+	        title:'Scope Change Grid',
+	    });
+
+	    // that.add(grid);
+	    return grid;
 
 	},
 
@@ -244,7 +318,7 @@ Ext.define('CustomApp', {
 					}
 
 					// return null value for future dates
-					if( (that.todayIndex >= 0) && (x > that.todayIndex)) {
+					if( (that.todayIndex >= 0) && (x > that.todayIndex+1)) {
 						return { 
 							x : x, y : null, features : null
 						};
@@ -277,21 +351,31 @@ Ext.define('CustomApp', {
 					property: 'ObjectID', operator: '=', value: f.ObjectID
 				});
 		});
-		console.log(filter.toString());
 		return filter;
 	},
 
 	// called when a data value is clicked. Shows a grid of the features that make up that data point.
 	showItemsTable : function( event ) {
-		console.log("event",event);
 		var that = this;
+
+		var scopeChangeFeatures = that.getScopeChangeFeatures(event.series.chart,event.x);
+
+		if (!_.isUndefined(that.scopeGrid)) {
+			that.remove(that.scopeGrid);
+		}
+		that.scopeGrid = that.addScopeChangeTable(scopeChangeFeatures);
+
 		var filter = that.createFilterFromFeatures(event.features);
 
 		Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
 			models: ['PortfolioItem/Feature'],
 			filters : [filter],
 			autoLoad: true,
-			enableHierarchy: true
+			enableHierarchy: true,
+			listeners : {
+				load : function(a,b,c) {
+				}
+			},
 		}).then({
 			success: function(store) {
 				// remove table if it already exists
@@ -307,22 +391,19 @@ Ext.define('CustomApp', {
 					shouldShowRowActionsColumn: false,
 					enableRanking: false,
 					columnCfgs: [
-						'Name',
-						'State',
-						'Owner',
-						'Project',
+						'Name', 'Predecessors', 'State', 'Owner', 'Project',
 						{ dataIndex : 'PreliminaryEstimate', text : 'Size'},
 						{ dataIndex : 'PercentDoneByStoryCount', text : '% (C)'},
 						{ dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% (P)'},
 						{ dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Points'},
 						{ dataIndex : 'LeafStoryCount', text : 'Count'}
-
 					]
 				});
-				// that.down("#items_box").add(that.itemsTable);
+
 				that.add(that.itemsTable);
-			},
-			scope: this
+				that.add(that.scopeGrid);
+
+			}
 		});
 	},
 
@@ -364,7 +445,7 @@ Ext.define('CustomApp', {
 		return indices;
 	},
 
-	categorize : function( feature ) {
+	categorize : function( feature, dayIndex ) {
 		var that = this;
 		// this function categorizes a feature snapshot into one of the following categories
 		// Scope, ScopeInProgress, ScopeCompleted
@@ -374,7 +455,7 @@ Ext.define('CustomApp', {
 				return f.ObjectID === feature.ObjectID;
 			});
 
-			if (that.baseline.length>0 && bIndex ==-1) {
+			if (that.baseline.length>0 && bIndex ==-1 && dayIndex >= that.baselineIndex) {
 				return "Added";
 			} else {
 				return "Baseline";
@@ -433,8 +514,6 @@ Ext.define('CustomApp', {
 
 	loadTimeBoxes : function(release) {
 
-		console.log("loadTimeBoxes",release);
-
 		var me = this;
 
 		var d1 = Ext.create('Deft.Deferred');
@@ -465,7 +544,11 @@ Ext.define('CustomApp', {
 			).then({
 				scope: me,
 				success: function(values) {
-					d2.resolve(_.map(values,function(v){ return v.data;}));
+					var iterations = _.map(values,function(v){ return v.data;});
+					var rawi = _.map(values,function(v){ return v.raw;});
+					console.log("rawi",rawi);
+					iterations = _.sortBy(iterations,function(i){ return moment(i.EndDate)});
+					d2.resolve(iterations);
 				},
 				failure: function(error) {
 					d2.resolve("");
@@ -493,8 +576,6 @@ Ext.define('CustomApp', {
 		if (!_.isUndefined(order)&&!_.isNull(order)) {
 			config.order = order;
 		}
-
-		console.log("config",config);
 
 		Ext.create('Rally.data.wsapi.Store', config ).load({
 			callback : function(records, operation, successful) {
