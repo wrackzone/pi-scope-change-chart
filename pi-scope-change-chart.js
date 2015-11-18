@@ -36,6 +36,13 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
             }
         ],
 
+        tooltip : {
+            formatter : function() {
+                return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y);
+            }
+        },
+
+
         plotOptions: {
             series : {
                 point : {
@@ -48,16 +55,8 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 }
             },
             column : {
-                stacking : 'normal'
+                stacking : 'normal',
             },
-            scatter: {
-                tooltip: {
-                    xDateFormat: '%Y-%m-%d',
-                    headerFormat: '<b>{series.name}</b><br>',
-                    pointFormat: '{point.x}<br>{point.workItem.FormattedID}:{point.workItem.Name} ({point.y})'
-                }
-
-            }
         }
     },
 

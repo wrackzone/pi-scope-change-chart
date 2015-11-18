@@ -107,7 +107,6 @@ Ext.define('CustomApp', {
 					success : function(snapshots) {
 						localStorage.setItem('timeBoxes', JSON.stringify(timeboxes));
 						localStorage.setItem('snapshots', JSON.stringify(snapshots));
-						console.log("snapshots",snapshots);
 						that.process(timeboxes,snapshots);
 					}
 				});
@@ -119,8 +118,6 @@ Ext.define('CustomApp', {
 	// The baseline date is based on the selected configuration
 	getBaselineIndex : function(range,iterations) {
 
-		// console.log("iterations",iterations);
-
 		var that = this;
 		// [['End of first Day'],['End of first Sprint'],['Day Index'],['Specific Date']]
 
@@ -130,7 +127,6 @@ Ext.define('CustomApp', {
 		if (that.getSetting("baselineType") ==='End of first Sprint') {
 			var iterationEndDate = moment( moment(_.first(iterations).EndDate).format("M/D/YYYY"));
 			var x = _.findIndex(range, iterationEndDate );
-			// console.log("iterations",iterations,iterationEndDate,x);
 			return x;
 		}
 		return 0;
@@ -151,7 +147,6 @@ Ext.define('CustomApp', {
 
 		// get todays index into the release
 		that.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
-		console.log("today",that.todayIndex);
 		
 		// get the index of the baseline date
 		that.baselineIndex = that.getBaselineIndex(dr,timeboxes[1]);
@@ -178,7 +173,6 @@ Ext.define('CustomApp', {
 			var groupedDayFeatures = _.groupBy(dayFeatures,function(f) {
 				return that.categorize(f,index);
 			});
-			console.log("day:",index,groupedDayFeatures);
 			return groupedDayFeatures;
 		});
 
@@ -217,14 +211,12 @@ Ext.define('CustomApp', {
 			f["Scope"] = "Removed";
 			return f;
 		});
-		console.log("r",r);
 
 		var a = _.map ( added, function(fid) { 
 			var f = findit(currentFeatures,fid);
 			f["Scope"] = "Added";
 			return f;
 		})
-		console.log("a",a);
 
 		return a.concat(r);
 
@@ -248,11 +240,12 @@ Ext.define('CustomApp', {
 	        store: store,
 	        columns: [
 	            { header: "Scope", sortable: true, dataIndex: 'Scope'},
-	            { header: "FormattedID", sortable: true, dataIndex: 'FormattedID'},
-	            { header: "Name", sortable: true, dataIndex: 'Name'},
+	            { header: "ID", sortable: true, dataIndex: 'FormattedID'},
+	            { header: "Name", sortable: true, dataIndex: 'Name',width:250},
+	            { header: "Size", sortable: true, dataIndex: 'PreliminaryEstimate'}
 	        ],
 	        stripeRows: true,
-	        title:'Scope Change Grid',
+	        title:'Scope Change Since Baseline',
 	    });
 
 	    // that.add(grid);
@@ -391,8 +384,8 @@ Ext.define('CustomApp', {
 					shouldShowRowActionsColumn: false,
 					enableRanking: false,
 					columnCfgs: [
-						'Name', 'Predecessors', 'State', 'Owner', 'Project',
-						{ dataIndex : 'PreliminaryEstimate', text : 'Size'},
+						'Name', 'Predecessors', 'State', 'Release', 'Project',
+						{ dataIndex : 'PreliminaryEstimate.Name', text : 'Size'},
 						{ dataIndex : 'PercentDoneByStoryCount', text : '% (C)'},
 						{ dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% (P)'},
 						{ dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Points'},
@@ -546,7 +539,6 @@ Ext.define('CustomApp', {
 				success: function(values) {
 					var iterations = _.map(values,function(v){ return v.data;});
 					var rawi = _.map(values,function(v){ return v.raw;});
-					console.log("rawi",rawi);
 					iterations = _.sortBy(iterations,function(i){ return moment(i.EndDate)});
 					d2.resolve(iterations);
 				},
