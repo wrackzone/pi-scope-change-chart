@@ -518,7 +518,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 		{ xtype:'container',itemId:'settings_box'}
 	],
 
-	devMode : true,
+	devMode : false,
 	baseline : [],
 	baselineIndex : 0,
 	todayIndex : -1,
@@ -533,43 +533,44 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 		return typeof(this.getAppId()) == 'undefined';
 	},
 
-	launch: function() {
-		this.callParent(arguments);
+	// launch: function() {
+	// 	this.callParent(arguments);
 
-		if (this.isExternal()){
-			this.showSettings(this.config);
-		} else {
-			this.onSettingsUpdate(this.getSettings());
-		}
-	},
+	// 	if (this.isExternal()){
+	// 		this.showSettings(this.config);
+	// 	} else {
+	// 		this.onSettingsUpdate(this.getSettings());
+	// 	}
+	// },
 
-	_launch : function() {
-		// this.onScopeChange();
-		if (this.devMode===true) {
-			this.onScopeChange({
-				getRecord : function() {
-					return {
-						raw : {
-							Name: "Release 4",
-							ReleaseDate: "2015-12-31T06:59:59.000Z",
-							ReleaseStartDate: "2015-10-01T06:00:00.000Z"
-						}
-					};
-				}
-			});
-		} else {
-			// get the release timebox scope.
-			var tbScope = this.getContext().getTimeboxScope();
-			if (_.isUndefined(tbScope)) {
-				this.add({ html : "This app must be installed in a Release filtered page."});
-			} else {
-				this.onScopeChange( tbScope );
-			}
-		}
-	},
+	// _launch : function() {
+	// 	console.log("launch");
+	// 	if (this.devMode===true) {
+	// 		this.onScopeChange({
+	// 			getRecord : function() {
+	// 				return {
+	// 					raw : {
+	// 						Name: "Release 4",
+	// 						ReleaseDate: "2015-12-31T06:59:59.000Z",
+	// 						ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+	// 					}
+	// 				};
+	// 			}
+	// 		});
+	// 	} else {
+	// 		// get the release timebox scope.
+	// 		var tbScope = this.getContext().getTimeboxScope();
+	// 		if (_.isUndefined(tbScope)) {
+	// 			this.add({ html : "This app must be installed in a Release filtered page."});
+	// 		} else {
+	// 			this.onScopeChange( tbScope );
+	// 		}
+	// 	}
+	// },
 
 	onScopeChange : function( scope ) {
 		// grab just the release data
+		console.log("onScopeChange");
 		var release = scope.getRecord().raw;
 		var that = this;
 		that.clear();
@@ -603,6 +604,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	// read releases (child projects) and iterations for the selected release.
 	readData: function(release) {
 		var that = this;
+		console.log("readData");
 
 		// if (that.devMode===true) {
 		// 	that.process( JSON.parse(localStorage.getItem("timeBoxes")), 
@@ -616,10 +618,16 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 				that.showMask("Loading snapshots...");
 				that.getSnapshots(timeboxes[0]).then({
 					success : function(snapshots) {
-						localStorage.setItem('timeBoxes', JSON.stringify(timeboxes));
-						localStorage.setItem('snapshots', JSON.stringify(snapshots));
+						console.log("readData snapshots",snapshots);
+						// localStorage.setItem('timeBoxes', JSON.stringify(timeboxes));
+						// localStorage.setItem('snapshots', JSON.stringify(snapshots));
 						that.process(timeboxes,snapshots);
+					},
+					failure : function(a,b,c) {
+						that.unmask();
+						console.log("a,b,c",a,b,c);
 					}
+
 				});
 			}
 		});
@@ -645,6 +653,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 
 	// process the snapshots, grouping them into values for each day
 	process : function(timeboxes,snapshots) {
+		console.log("process");
 
 		var that = this;
 		that.showMask("Processing snapshots...");
@@ -988,6 +997,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 	},
 
 	getSnapshots : function(releases) {
+		console.log("getSnapshots");
 
 		var that = this;
 
@@ -998,11 +1008,13 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 			limit: Infinity,
 			listeners: {
 				refresh: function(store) {
+					console.log("snapshots refresh:",store);
 					var snapshots = [];
 					for (var i = 0, ii = store.getTotalCount(); i < ii; ++i) {
 						snapshots.push(store.getAt(i).data);
 					}
 					deferred.resolve(snapshots);
+
 				}
 			},
 			fetch: that.fetch,
