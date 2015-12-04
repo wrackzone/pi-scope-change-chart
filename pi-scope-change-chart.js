@@ -5,7 +5,9 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
     alias: 'widget.progresschart',
 
     itemId: 'rally-chart',
-    chartData: {},
+    chartData: {
+
+    },
     loadMask: false,
     chartColors : ["#E0E0E0","#00a9e0","#009933","#E0E0E0","#00a9e0","#009933"],
     chartConfig: {
@@ -26,7 +28,8 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 text: 'Day'
             },
             startOnTick: true,
-            endOnTick: true
+            endOnTick: true,
+            min : 0
         },
         yAxis: [
             {
@@ -60,43 +63,6 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
         }
     },
 
-    // addFeatureTable : function(features) {
-    //     var that = this;
-
-    //     var _onStoreBuilt = function(store) {
-    //         that.chartConfig.app.add({
-    //             xtype: 'rallytreegrid',
-    //             store: store,
-    //             context: this.getContext(),
-    //             enableEditing: false,
-    //             enableBulkEdit: false,
-    //             shouldShowRowActionsColumn: false,
-    //             enableRanking: false,
-    //             columnCfgs: [
-    //                 'Name',
-    //                 'ScheduleState',
-    //                 'Owner'
-    //             ]
-    //         });
-    //     };
-
-    //     var filter = Ext.create('Rally.data.wsapi.Filter', {
-    //          property: 'Name',
-    //          operator: '=',
-    //          value: 'Schedule Usage Reports'
-    //     });
-
-    //     Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
-    //         models: ['portfolioitem/feature'],
-    //         filters : [filter],
-    //         autoLoad: true,
-    //         enableHierarchy: true
-    //     }).then({
-    //         success: this._onStoreBuilt,
-    //         scope: this
-    //     });
-
-    // },
     initComponent : function() {
         this.callParent(arguments);
         this.addEvents('series_click');
@@ -107,6 +73,10 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
         this.callParent(arguments);
 
         scope_change_chart = this;
+
+        this.chartData = config.chartData;
+
+        console.log(config);
         
         if (config.title){
             this.chartConfig.title = config.title;
