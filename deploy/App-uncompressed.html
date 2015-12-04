@@ -545,6 +545,7 @@ Ext.define('CustomApp', {
 	},
 
 	_loadPreliminaryEstimateValues : function(bundle) {
+		app.showMask("loading timeboxes ...");
 		console.log("_loadPreliminaryEstimateValues");
 		var deferred = Ext.create('Deft.Deferred');
 
@@ -834,6 +835,7 @@ Ext.define('CustomApp', {
 
 	onScopeChange : function( scope ) {
 		// grab just the release data
+		app = this;
 		console.log("onScopeChange");
 		this.release = !_.isUndefined(scope) ? scope.getRecord().raw : null;
 		this.clear();
@@ -853,6 +855,7 @@ Ext.define('CustomApp', {
     	]).then({
     		success : function(res) {
     			console.log("res",res);
+    			app.bundle = res;
     		},
     		failure : function(res) {
     			console.log("failure",res);
@@ -894,7 +897,7 @@ Ext.define('CustomApp', {
 
 		// aggregate the features for all series for the selected data
 		var currentFeatures = _.compact(_.flatten(_.map(chart.series,function(s) { return s.data[x].features })));
-		var previousFeatures = that.baseline;
+		var previousFeatures = app.bundle.baseline;
 
 		// get feature ids for comparison
 		var cFeatures = _.map( currentFeatures, function(f) { return f.FormattedID; });
@@ -1012,11 +1015,20 @@ Ext.define('CustomApp', {
 		var that = this;
 
 		var scopeChangeFeatures = that.getScopeChangeFeatures(event.series.chart,event.x);
+		that.scopeGrid = that.addScopeChangeTable(scopeChangeFeatures);
+
+		var x = Ext.create("Ext.Window",{
+		    title : 'Features Added/Removed since Baseline',
+		    width : 600,
+		    height: 350,
+		    autoScroll : true,
+		    // html : 'a',
+		    items : [ that.scopeGrid ]		
+		}).show();
 
 		if (!_.isUndefined(that.scopeGrid)) {
 			that.remove(that.scopeGrid);
 		}
-		that.scopeGrid = that.addScopeChangeTable(scopeChangeFeatures);
 
 		var filter = that.createFilterFromFeatures(event.features);
 
@@ -1054,7 +1066,7 @@ Ext.define('CustomApp', {
 				});
 
 				that.add(that.itemsTable);
-				that.add(that.scopeGrid);
+				// that.add(that.scopeGrid);
 
 			}
 		});
@@ -1159,14 +1171,14 @@ Ext.define('CustomApp', {
 	},
 
 	showMask: function(msg) {
-        if ( this.getEl() ) { 
-            this.getEl().unmask();
-            this.getEl().mask(msg);
+        if ( app.getEl() ) { 
+            app.getEl().unmask();
+            app.getEl().mask(msg);
         }
     },
 
     hideMask: function() {
-        this.getEl().unmask();
+        app.getEl().unmask();
     }
 });
 
