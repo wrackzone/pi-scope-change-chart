@@ -448,13 +448,15 @@ Ext.define('CustomApp', {
 	addScopeChangeTable : function( features ) {
 
 		var that = this;
+		console.log("features",features);
 
 		// create the data store
 	    var store = new Ext.data.ArrayStore({
 	        fields: [
 	        	{name: 'Scope'},
 	           	{name: 'FormattedID' },
-	           	{name: 'Name' }
+	           	{name: 'Name' },
+	           	{name: 'PreliminaryEstimate' }
 	        ]
 	    });
     	store.loadData(features);
@@ -465,7 +467,14 @@ Ext.define('CustomApp', {
 	            { header: "Scope", sortable: true, dataIndex: 'Scope'},
 	            { header: "ID", sortable: true, dataIndex: 'FormattedID'},
 	            { header: "Name", sortable: true, dataIndex: 'Name',width:250},
-	            { header: "Size", sortable: true, dataIndex: 'PreliminaryEstimate'}
+	            { header: "Size", sortable: true, dataIndex: 'PreliminaryEstimate' ,
+	            	renderer : function(value, p, record){
+						var estimate = _.find(app.bundle.prelimEstimateValues,function(v) {
+							return value === v.get("ObjectID");
+						});
+	            		return estimate ? estimate.get("Name") + " (" + estimate.get("Value") + ")" : "(None)";
+	            	}
+	        	}
 	        ],
 	        stripeRows: true,
 	        title:'Scope Change Since Baseline',
@@ -473,7 +482,6 @@ Ext.define('CustomApp', {
 
 	    // that.add(grid);
 	    return grid;
-
 	},
 
 	// returns a function to aggregate the features based on the app configuration
@@ -496,7 +504,7 @@ Ext.define('CustomApp', {
 		// sum of preliminary estimate values for the features
 		var estimateReducer = function(features) {
 			return _.reduce(features,function(memo,feature) { 
-				var estimate = _.find(that.prelimEstimateValues,function(v) {
+				var estimate = _.find(app.bundle.prelimEstimateValues,function(v) {
 					return feature.PreliminaryEstimate === v.ObjectID;
 				});
 				return memo + (_.isUndefined(estimate) ? 0 : estimate.Value); 
@@ -653,7 +661,7 @@ Ext.define('CustomApp', {
 
 		var baselineTypeStore = new Ext.data.ArrayStore({
 			fields: ['baselineType'],
-			data : [['End of first Day'],['End of first Sprint'],['Day Index'],['Specific Date']]
+			data : [['End of first Day'],['End of first Sprint'] /*,['Day Index'],['Specific Date']*/ ]
 		});  
 
 		return [ 
