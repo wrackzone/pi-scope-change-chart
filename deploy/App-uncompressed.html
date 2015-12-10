@@ -562,6 +562,7 @@ Ext.define('CustomApp', {
 				[]).then({
 					success : function(records) {
 						bundle["prelimEstimateValues"] = records;
+						app.bundle = bundle;
 						deferred.resolve(bundle);
 					}
 				});
@@ -996,9 +997,9 @@ Ext.define('CustomApp', {
 		var estimateReducer = function(features) {
 			return _.reduce(features,function(memo,feature) { 
 				var estimate = _.find(app.bundle.prelimEstimateValues,function(v) {
-					return feature.PreliminaryEstimate === v.ObjectID;
+					return feature.PreliminaryEstimate === v.get("ObjectID");
 				});
-				return memo + (_.isUndefined(estimate) ? 0 : estimate.Value); 
+				return memo + (_.isUndefined(estimate) ? 0 : estimate.get("Value")); 
 			}, 0 );
 		};
 
