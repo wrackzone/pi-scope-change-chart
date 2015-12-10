@@ -49,9 +49,13 @@ Ext.define('CustomApp', {
 		if (app.devMode===true) {
 			deferred.resolve({
 				release :  {
-								Name: "Release 4",
-								ReleaseDate: "2015-12-31T06:59:59.000Z",
-								ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+								// Name: "Release 4",
+								// ReleaseDate: "2015-12-31T06:59:59.000Z",
+								// ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+						Name: "AC7",
+						ReleaseDate: "2016-01-05T06:59:59.000Z",
+						ReleaseStartDate: "2015-10-15T06:00:00.000Z"
+
 						}
 				}
 			);
@@ -135,12 +139,13 @@ Ext.define('CustomApp', {
 				["Name","StartDate","EndDate"], 
 				[
 					{ property : "EndDate", operator : "<=", value : release.ReleaseDate },
-					{ property : "EndDate", operator : ">=", value : release.ReleaseStartDate }
+					{ property : "EndDate", operator : ">", value : release.ReleaseStartDate }
 				], {
 					projectScopeDown : false
 				}
 			).then({
 				success : function(records) {
+					console.log("_loadIterations",records);
 					bundle.iterations = records;
 					deferred.resolve(bundle);
 				},
@@ -219,6 +224,7 @@ Ext.define('CustomApp', {
 		bundle.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
 		// get the index of the baseline date
 		bundle.baselineIndex = app.getBaselineIndex(dr,bundle.iterations);
+		console.log("baselineIndex",bundle.baselineIndex);
 		// initiatlize the baseline (the set of features that exist on the baseline)
 		bundle.baseline = _.clone(bundle.data[bundle.baselineIndex]);
 		console.log("baseline",bundle.baseline)
@@ -403,7 +409,11 @@ Ext.define('CustomApp', {
 		}
 		if (app.getSetting("baselineType") ==='End of first Sprint') {
 			var iterationEndDate = moment( moment(_.first(iterations).raw.EndDate).format("M/D/YYYY"));
-			var x = _.findIndex(range, iterationEndDate );
+			console.log("ied",iterationEndDate.format(),range);
+			var x = _.findIndex(range, function(r) {
+				// console.log(r.format(),iterationEndDate.format());
+				return r.format() === iterationEndDate.format();
+			} );
 			return x;
 		}
 		return 0;
@@ -560,7 +570,8 @@ Ext.define('CustomApp', {
 		var filter = that.createFilterFromFeatures(event.features);
 
 		Ext.create('Rally.data.wsapi.TreeStoreBuilder').build({
-			models: ['PortfolioItem/Feature'],
+			// models: ['PortfolioItem/Feature'],
+			models: [_.first(app.bundle.piTypes).get("TypePath")],
 			filters : [filter],
 			autoLoad: true,
 			enableHierarchy: true,
