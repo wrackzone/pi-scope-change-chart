@@ -9,7 +9,9 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 
     },
     loadMask: false,
-    chartColors : ["#E0E0E0","#00a9e0","#009933","#E0E0E0","#00a9e0","#009933"],
+    // chartColors : ["#E0E0E0","#00a9e0","#009933","#E0E0E0","#00a9e0","#009933"],
+    chartColors : ["#CCCCCC","#00a9e0","#009933","#CCCCCC","#00a9e0","#009933"],
+    
     chartConfig: {
         // colors : ["#E0E0E0","#00a9e0","#fad200","#8dc63f"],
         chart: {
@@ -35,9 +37,15 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
             {
                 title: {
                     text: 'Points/Count'
-                }
-            }
-        ],
+                },
+                plotLines : [{
+                    color: '#000000',
+                    width: 1,
+                    value: 0,
+                    zIndex : 4,
+                    label : {text:"-"}
+                }]
+            }],
 
         tooltip : {
             formatter : function() {
@@ -94,6 +102,15 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 value : config.baselineIndex
 
         });
+        // this.chartConfig.yAxis.plotLines = [];
+        // this.chartConfig.yAxis.plotLines.push({
+        //     color: '#FF0000',
+        //     width: 1,
+        //     value: 0,
+        //     zIndex : 4,
+        //     label : {text:"-"}
+        // });
+
         // this.chartConfig.app = config.app;
     }
 });

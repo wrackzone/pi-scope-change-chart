@@ -49,12 +49,12 @@ Ext.define('CustomApp', {
 		if (app.devMode===true) {
 			deferred.resolve({
 				release :  {
-								// Name: "Release 4",
-								// ReleaseDate: "2015-12-31T06:59:59.000Z",
-								// ReleaseStartDate: "2015-10-01T06:00:00.000Z"
-						Name: "AC7",
-						ReleaseDate: "2016-01-05T06:59:59.000Z",
-						ReleaseStartDate: "2015-10-15T06:00:00.000Z"
+								Name: "Release 4",
+								ReleaseDate: "2015-12-31T06:59:59.000Z",
+								ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+						// Name: "AC7",
+						// ReleaseDate: "2016-01-05T06:59:59.000Z",
+						// ReleaseStartDate: "2015-10-15T06:00:00.000Z"
 
 						}
 				}
@@ -148,7 +148,10 @@ Ext.define('CustomApp', {
 				success : function(records) {
 					console.log("_loadIterations",records);
 					bundle.iterations = records;
-					deferred.resolve(bundle);
+					if (records.length>0)
+						deferred.resolve(bundle);
+					else
+						deferred.reject("No iterations found");
 				},
 				failure : function(e) {
 					deferred.reject(e);
@@ -385,6 +388,7 @@ Ext.define('CustomApp', {
     		},
     		failure : function(res) {
     			console.log("failure",res);
+    			app.add({text:res});
     		}
     	});
 
