@@ -228,10 +228,8 @@ Ext.define('CustomApp', {
 		bundle.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
 		// get the index of the baseline date
 		bundle.baselineIndex = app.getBaselineIndex(dr,bundle.iterations);
-		console.log("baselineIndex",bundle.baselineIndex);
 		// initiatlize the baseline (the set of features that exist on the baseline)
 		bundle.baseline = _.clone(bundle.data[bundle.baselineIndex]);
-		console.log("baseline",bundle.baseline)
 		// get the set of indexes into release array that represent end dates of iterations
 		bundle.iterationIndices = app.dateIndexes( dr, _.map(bundle.iterations,function(i){ return moment(i.raw.EndDate);}));
 

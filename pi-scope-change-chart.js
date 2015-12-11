@@ -63,7 +63,10 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                             scope_change_chart.fireEvent("series_click",this);
                         }
                     }
-                }
+                },
+                pointPadding: 0.1,
+                groupPadding: 0,
+                borderWidth: 0
             },
             column : {
                 stacking : 'normal',
