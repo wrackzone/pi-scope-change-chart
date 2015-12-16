@@ -603,7 +603,7 @@ Ext.define('CustomApp', {
 				        title: 'Selected',
 				        items : [that.itemsTable]
 				    }, {
-				        title: 'Scope Change',
+				        title: 'Change',
 				        items : [that.scopeGrid]
 				    }]
 				});
