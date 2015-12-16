@@ -120,7 +120,6 @@ Ext.define('CustomApp', {
 				[{ property : "Name", operator : "=", value : release.Name }]
 			).then({
 				success : function(records) {
-					console.log(records);
 					bundle.releases = records;
 					deferred.resolve(bundle);
 				},
@@ -146,7 +145,6 @@ Ext.define('CustomApp', {
 				}
 			).then({
 				success : function(records) {
-					console.log("_loadIterations",records);
 					bundle.iterations = records;
 					if (records.length>0)
 						deferred.resolve(bundle);
@@ -169,7 +167,6 @@ Ext.define('CustomApp', {
 			limit: Infinity,
 			listeners: {
 				refresh: function(store) {
-					console.log("snapshots refresh:",store);
 					var snapshots = [];
 					for (var i = 0, ii = store.getTotalCount(); i < ii; ++i) {
 						snapshots.push(store.getAt(i).data);
@@ -199,6 +196,7 @@ Ext.define('CustomApp', {
 		});
 
 		var dr = app.dateRange(bundle.release);
+		console.log(bundle.release,_.last(dr));
 		// iterate each day of the release
 		// data is an array of objects; each object is keyed by the category and the key value is the 
 		// set of applicable features
@@ -225,7 +223,13 @@ Ext.define('CustomApp', {
 		// construct the date range array (array of dates for the release)
 		var dr = app.dateRange(bundle.release);
 		// get todays index into the release
-		bundle.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
+		// bundle.todayIndex = _.findIndex(dr, moment(moment().format("M/D/YYYY")));
+		var today = moment();
+		bundle.todayIndex = _.findIndex(dr, function(r) {
+			return r.year() === today.year() && r.month() === today.month() && r.date() === today.date();
+		} );
+		console.log("today",bundle.todayIndex);
+
 		// get the index of the baseline date
 		bundle.baselineIndex = app.getBaselineIndex(dr,bundle.iterations);
 		// initiatlize the baseline (the set of features that exist on the baseline)
@@ -300,7 +304,7 @@ Ext.define('CustomApp', {
 					}
 
 					// return null value for future dates
-					if( (app.todayIndex >= 0) && (x > app.todayIndex+1)) {
+					if( (bundle.todayIndex >= 0) && (x > bundle.todayIndex+1)) {
 						return { 
 							x : x, y : null, features : null
 						};
@@ -412,9 +416,7 @@ Ext.define('CustomApp', {
 		}
 		if (app.getSetting("baselineType") ==='End of first Sprint') {
 			var iterationEndDate = moment( moment(_.first(iterations).raw.EndDate).format("M/D/YYYY"));
-			console.log("ied",iterationEndDate.format(),range);
 			var x = _.findIndex(range, function(r) {
-				// console.log(r.format(),iterationEndDate.format());
 				return r.format() === iterationEndDate.format();
 			} );
 			return x;
@@ -461,7 +463,6 @@ Ext.define('CustomApp', {
 	addScopeChangeTable : function( features ) {
 
 		var that = this;
-		console.log("features",features);
 
 		// create the data store
 	    var store = new Ext.data.ArrayStore({
@@ -557,17 +558,8 @@ Ext.define('CustomApp', {
 		var scopeChangeFeatures = that.getScopeChangeFeatures(event.series.chart,event.x);
 		that.scopeGrid = that.addScopeChangeTable(scopeChangeFeatures);
 
-		var x = Ext.create("Ext.Window",{
-		    title : 'Features Added/Removed since Baseline',
-		    width : 600,
-		    height: 350,
-		    autoScroll : true,
-		    // html : 'a',
-		    items : [ that.scopeGrid ]		
-		}).show();
-
-		if (!_.isUndefined(that.scopeGrid)) {
-			that.remove(that.scopeGrid);
+		if (!_.isUndefined(that.tabPanel)) {
+			that.remove(that.tabPanel);
 		}
 
 		var filter = that.createFilterFromFeatures(event.features);
@@ -598,7 +590,7 @@ Ext.define('CustomApp', {
 					enableRanking: false,
 					columnCfgs: [
 						'Name', 'Predecessors', 'State', 'Release', 'Project',
-						{ dataIndex : 'PreliminaryEstimate.Name', text : 'Size'},
+						{ dataIndex : 'PreliminaryEstimate', text : 'Size'},
 						{ dataIndex : 'PercentDoneByStoryCount', text : '% (C)'},
 						{ dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% (P)'},
 						{ dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Points'},
@@ -606,9 +598,17 @@ Ext.define('CustomApp', {
 					]
 				});
 
-				that.add(that.itemsTable);
-				// that.add(that.scopeGrid);
+				that.tabPanel = Ext.create('Ext.tab.Panel', {
+				    items: [{
+				        title: 'Selected',
+				        items : [that.itemsTable]
+				    }, {
+				        title: 'Scope Change',
+				        items : [that.scopeGrid]
+				    }]
+				});
 
+				that.add(that.tabPanel);
 			}
 		});
 	},
@@ -629,10 +629,10 @@ Ext.define('CustomApp', {
 
 	dateRange : function(release) {
 		var dr = [];
-		var range = moment.range( release.ReleaseStartDate, release.ReleaseDate );
+		var range = moment.range( moment(release.ReleaseStartDate), moment(release.ReleaseDate) );
 		range.by('days',function(m) {
 			dr.push( moment(m.format("M/D/YYYY")));
-		});
+		},false);
 		return dr;
 	},
 
