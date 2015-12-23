@@ -15,11 +15,7 @@ Ext.define('CustomApp', {
         	aggregateType : 'Count'
         }
     },
-
 	devMode : false,
-	baseline : [],
-	baselineIndex : 0,
-	todayIndex : -1,
 	fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 'PreliminaryEstimate',
 		'AcceptedLeafStoryCount', 'AcceptedLeafStoryPlanEstimateTotal', 
 		'LeafStoryCount', 'LeafStoryPlanEstimateTotal','PercentDoneByStoryCount',
@@ -32,7 +28,6 @@ Ext.define('CustomApp', {
 	},
 
 	// launch: function() {
-
 	// 	this.callParent(arguments);
 	// 	app = this;
 	// 	app.onScopeChange();
@@ -49,9 +44,9 @@ Ext.define('CustomApp', {
 		if (app.devMode===true) {
 			deferred.resolve({
 				release :  {
-								Name: "Release 4",
-								ReleaseDate: "2015-12-31T06:59:59.000Z",
-								ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+						Name: "Release 4",
+						ReleaseDate: "2015-12-31T06:59:59.000Z",
+						ReleaseStartDate: "2015-10-01T06:00:00.000Z"
 						// Name: "AC7",
 						// ReleaseDate: "2016-01-05T06:59:59.000Z",
 						// ReleaseStartDate: "2015-10-15T06:00:00.000Z"
@@ -134,6 +129,7 @@ Ext.define('CustomApp', {
 		console.log("_loadIterations");
 		var release = bundle.release;
 		var deferred = Ext.create('Deft.Deferred');
+		// model_name, model_fields, filters,ctx,order
 		app._loadAStoreWithAPromise(
 				"Iteration", 
 				["Name","StartDate","EndDate"], 
@@ -142,7 +138,8 @@ Ext.define('CustomApp', {
 					{ property : "EndDate", operator : ">", value : release.ReleaseStartDate }
 				], {
 					projectScopeDown : false
-				}
+				},
+				"EndDate"
 			).then({
 				success : function(records) {
 					bundle.iterations = records;
@@ -370,6 +367,7 @@ Ext.define('CustomApp', {
 		console.log("onScopeChange");
 		this.release = !_.isUndefined(scope) ? scope.getRecord().raw : null;
 		this.clear();
+		app.bundle = {};
 
 		Deft.Chain.pipeline([
 			this._getRelease,
@@ -402,9 +400,16 @@ Ext.define('CustomApp', {
 		if (!_.isUndefined(that.itemsTable)) {
 			that.remove(that.itemsTable);
 		}
+		if (!_.isUndefined(that.scopeGrid)) {
+			that.remove(that.scopeGrid);
+		}
 		if (!_.isUndefined(that.chart)) {
 			that.remove(that.chart);
 		}
+		if (!_.isUndefined(that.tabPanel)) {
+			that.remove(that.tabPanel);
+		}
+
 	},
 
 	// The release is an array of dates; find the index of the date for the baseline. 
@@ -599,8 +604,15 @@ Ext.define('CustomApp', {
 				});
 
 				that.tabPanel = Ext.create('Ext.tab.Panel', {
+					// tabBar: {
+					//     layout: {
+					//         type: 'hbox',
+					//         align: 'stretch'
+					//     },
+					//     defaults: { flex: 1 }
+					// },
 				    items: [{
-				        title: 'Selected',
+				        title: 'Series',
 				        items : [that.itemsTable]
 				    }, {
 				        title: 'Change',
