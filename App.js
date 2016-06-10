@@ -192,9 +192,9 @@ Ext.define('CustomApp', {
 				"_TypeHierarchy" : { "$in" : [_.first(bundle.piTypes).get("TypePath")] },
 				"Release" : { "$in" : _.map(releases,function(r){return r.get("ObjectID");})}
 				// "Release" : parentRelease.get("ObjectID")
-			},
-			sort: { "_ValidFrom": 1 },
-			pageSize : 2000
+			}
+			// sort: { "_ValidFrom": 1 },
+			// pageSize : 10000
 		});
 		return deferred.getPromise();
 	},
