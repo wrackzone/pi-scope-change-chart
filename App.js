@@ -44,9 +44,9 @@ Ext.define('CustomApp', {
 		if (app.devMode===true) {
 			deferred.resolve({
 				release :  {
-						Name: "Release 4",
-						ReleaseDate: "2015-12-31T06:59:59.000Z",
-						ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+						Name: "Release 2",
+						ReleaseDate: "2016-08-01T06:59:59.000Z",
+						ReleaseStartDate: "2016-05-01T06:00:00.000Z"
 						// Name: "AC7",
 						// ReleaseDate: "2016-01-05T06:59:59.000Z",
 						// ReleaseStartDate: "2015-10-15T06:00:00.000Z"
@@ -327,7 +327,8 @@ Ext.define('CustomApp', {
 					// calculate the value by aggregating the features
 					var value = reducerFunction( d[key] );
 					// if it's not baseline multiply by -1 so it is shown below the x-axis
-					value = key.startsWith("Baseline") ? value : value * -1;                        
+					// value = key.startsWith("Baseline") ? value : value * -1;                        
+					value = key.includes("Baseline") ? value : value * -1;                        
 
 					return {
 						x : x, y : value, features : d[key]

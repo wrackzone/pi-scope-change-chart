@@ -431,7 +431,47 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 
         tooltip : {
             formatter : function() {
-                return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y);
+                var that = this;
+                console.log(this);
+                var pointVal = function(series) {
+                    var val = series.data[that.point.x].y;
+                    return !_.isNull(val) ? (val*-1) : 0;
+                };
+                var sumSeries = function(seriesContains) {
+                    return _.reduce( that.series.chart.series, function(sum,series) {
+                    return sum + (series.name.includes(seriesContains)) ?
+                        sum + pointVal(series) : 
+                        0;
+                    },0);
+                };
+
+                var pct = function(val,total) {
+                    return total > 0 ? Math.round((val/total)*100) : 0;
+                }
+
+                var total = _.reduce( this.series.chart.series, function(sum,series) {
+                    return sum + pointVal(series);
+                },0);
+
+                var inprogress = sumSeries("InProgress");
+                var completed = sumSeries("Completed");
+                var notstarted = total - (completed+inprogress);
+
+                console.log("inp",inprogress);
+
+                // var table = "<table><tr><th>Series</th><th>Total</th><th>%</th>"+
+                //     "<tr><td>NotStarted</td><td>"+notstarted+"</td><td>+" + pct(notstarted,total)+"</td></tr" +
+                //     "<tr><td>NotStarted</td><td>"+inprogress+"</td><td>+" + pct(inprogress,total)+"</td></tr" +
+                //     "<tr><td>NotStarted</td><td>"+completed+"</td><td>+" + pct(completed,total)+"</td></tr" +
+                //     "</table>"
+                return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
+                    "<br>NotStarted:" + notstarted + " (" + pct(notstarted,total) + "%)" +
+                    "<br>In-Progress:" + inprogress + " (" + pct(inprogress,total) + "%)" +
+                    "<br>Completed" + completed + " (" + pct(completed,total) + "%)"
+                    
+                // return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total+"<br>"+
+                // table;
+
             }
         },
 
@@ -545,9 +585,9 @@ Ext.define('CustomApp', {
 		if (app.devMode===true) {
 			deferred.resolve({
 				release :  {
-						Name: "Release 4",
-						ReleaseDate: "2015-12-31T06:59:59.000Z",
-						ReleaseStartDate: "2015-10-01T06:00:00.000Z"
+						Name: "Release 2",
+						ReleaseDate: "2016-08-01T06:59:59.000Z",
+						ReleaseStartDate: "2016-05-01T06:00:00.000Z"
 						// Name: "AC7",
 						// ReleaseDate: "2016-01-05T06:59:59.000Z",
 						// ReleaseStartDate: "2015-10-15T06:00:00.000Z"
@@ -828,7 +868,8 @@ Ext.define('CustomApp', {
 					// calculate the value by aggregating the features
 					var value = reducerFunction( d[key] );
 					// if it's not baseline multiply by -1 so it is shown below the x-axis
-					value = key.startsWith("Baseline") ? value : value * -1;                        
+					// value = key.startsWith("Baseline") ? value : value * -1;                        
+					value = key.includes("Baseline") ? value : value * -1;                        
 
 					return {
 						x : x, y : value, features : d[key]
