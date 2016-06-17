@@ -53,13 +53,11 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 console.log(this);
                 var pointVal = function(series) {
                     var val = series.data[that.point.x].y;
-                    return !_.isNull(val) ? (val*-1) : 0;
+                    return !_.isNull(val) ? (val <0 ? val*-1 : val) : 0;
                 };
                 var sumSeries = function(seriesContains) {
                     return _.reduce( that.series.chart.series, function(sum,series) {
-                    return sum + (series.name.includes(seriesContains)) ?
-                        sum + pointVal(series) : 
-                        0;
+                        return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
                     },0);
                 };
 
@@ -75,14 +73,12 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var completed = sumSeries("Completed");
                 var notstarted = total - (completed+inprogress);
 
-                console.log("inp",inprogress);
-
                 // var table = "<table><tr><th>Series</th><th>Total</th><th>%</th>"+
                 //     "<tr><td>NotStarted</td><td>"+notstarted+"</td><td>+" + pct(notstarted,total)+"</td></tr" +
                 //     "<tr><td>NotStarted</td><td>"+inprogress+"</td><td>+" + pct(inprogress,total)+"</td></tr" +
                 //     "<tr><td>NotStarted</td><td>"+completed+"</td><td>+" + pct(completed,total)+"</td></tr" +
                 //     "</table>"
-                return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
+                return that.series.name + ' Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
                     "<br>NotStarted:" + notstarted + " (" + pct(notstarted,total) + "%)" +
                     "<br>In-Progress:" + inprogress + " (" + pct(inprogress,total) + "%)" +
                     "<br>Completed:" + completed + " (" + pct(completed,total) + "%)"
