@@ -69,7 +69,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 };
 
                 var pct = function(val,total) {
-                    return total > 0 ? Math.round((val/total)*100) : 0;
+                    return "" + (total > 0 ? Math.round((val/total)*100) : 0)+"%";
                 }
 
                 var labelPct = function(val,total) {
