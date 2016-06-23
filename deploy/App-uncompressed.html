@@ -480,52 +480,61 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var ta = as+asip+asc;
                 var tt = tb+ta;
 
-                 var tpl = Ext.create('Ext.Template', 
-                    "<table width='100%'>" + 
-                        "<tr>" +
-                            // "<td><b>{series}</b></td>" +
-                            "<td align='center'>Day {day} of {totaldays}</td>" +
-                            // "<td>Value {value}</td>" +
-                        "</tr>" +
-                    "</table>" +
-                    
-                    // border='1'
+                var tbp = pct(tb,total);
+                var tsp = pct(ta,total);
+                var ttp = pct(tt,total);
+
+                var tpl = Ext.create('Ext.Template', 
                     "<table cellpadding='2'>"+
                     "<tr>"+
-                        "<td></td>"+
-                        "<td align='center'>Baseline</td>"+
-                        "<td align='center'>Added</td>"+
-                        "<td align='center'><b>Total</b></td>"+
+                        "<td align='center'> </td>"+
+                        "<td align='center' style='padding-left:15px;padding-right:15px;'>Baseline</td>"+
+                        "<td align='center' style='padding-left:15px;padding-right:15px;'>Added</td>"+
+                        "<td align='center' style='padding-left:15px;padding-right:15px;'><b>Total</b></td>"+
+                        "<td align='center' style='padding-left:15px;padding-right:0px;'><b>Total %</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
                         "<td>NotStarted</td>"+
-                        "<td align='right'>{bs}</td>"+
-                        "<td align='right'>{as}</td>"+
-                        "<td align='right'><b>{ts}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{bs}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{as}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{ts}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:0px;'><b>{tnsp}</b></td>"+  
                     "</tr>"+
 
                     "<tr>"+
                         "<td>In-Progress</td>"+
-                        "<td align='right'>{bsip}</td>"+
-                        "<td align='right'>{asip}</td>"+
-                        "<td align='right'><b>{tip}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{bsip}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{asip}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tip}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:0px;'><b>{tipp}</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
                         "<td>Completed</td>"+
-                        "<td align='right'>{bsc}</td>"+
-                        "<td align='right'>{asc}</td>"+
-                        "<td align='right'><b>{tc}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{bsc}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'>{asc}</td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tc}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:0px;'><b>{tcp}</b></td>"+
                     "</tr>"+
 
-                    "<tr>"+
+                    "<tr style='padding-top:10px;'>"+
                         "<td><b>Total</b></td>"+
-                        "<td><b>{tb}</b></td>"+
-                        "<td><b>{ta}</b></td>"+
-                        "<td align='right'><b>{tt}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tb}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{ta}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tt}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:0px;'><b>100%</b></td>"+
+                    "</tr>"+
+
+                     "<tr>"+
+                        "<td><b>Total %</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tbp}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{tsp}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:15px;'><b>{ttp}</b></td>"+
+                        "<td align='right' style='padding-left:15px;padding-right:0px;'><b> </b></td>"+
                     "</tr>"+
                     "</table>",
+
                     { compiled : true });
 
                  return tpl.apply(
@@ -536,8 +545,12 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                     bs:(bs),bsip:bsip,bsc:bsc,
                     as:as,asip:asip,asc:asc,
 
-                    ts:labelPct(ts,total),tip:labelPct(tip,total),tc:labelPct(tc,total),
-                    tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
+                    ts:ts,tip:tip,tc:tc,
+                    // tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
+                    tb:tb,ta:ta,tt:tt,
+                    tbp:tbp,tsp:tsp,ttp:ttp,
+                    tnsp:pct(ts,total),tipp:pct(tip,total),tcp:pct(tc,total)
+                });
 
                 // var table = "<table><tr><th>Series</th><th>Total</th><th>%</th>"+
                 //     "<tr><td>NotStarted</td><td>"+notstarted+"</td><td>+" + pct(notstarted,total)+"</td></tr" +
