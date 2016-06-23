@@ -48,9 +48,10 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
             }],
 
         tooltip : {
+            useHTML: true,
             formatter : function() {
                 var that = this;
-                console.log(this);
+                // console.log(this);
                 var pointVal = function(series) {
                     var val = series.data[that.point.x].y;
                     return !_.isNull(val) ? (val <0 ? val*-1 : val) : 0;
@@ -60,9 +61,18 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                         return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
                     },0);
                 };
+                var getSeries = function(seriesName) {
+                    return _.reduce( that.series.chart.series, function(sum,series) {
+                        return sum + (series.name===seriesName ? pointVal(series) : 0);
+                    },0);
+                };
 
                 var pct = function(val,total) {
                     return total > 0 ? Math.round((val/total)*100) : 0;
+                }
+
+                var labelPct = function(val,total) {
+                    return "" + val + " ("+pct(val,total)+")";
                 }
 
                 var total = _.reduce( this.series.chart.series, function(sum,series) {
@@ -72,19 +82,78 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var inprogress = sumSeries("InProgress");
                 var completed = sumSeries("Completed");
                 var notstarted = total - (completed+inprogress);
+                var bs = getSeries("BaselineScope");
+                var bsip = getSeries("BaselineScopeInProgress");
+                var bsc = getSeries("BaselineScopeCompleted");
+                var as = getSeries("AddedScope");
+                var asip = getSeries("AddedScopeInProgress");
+                var asc = getSeries("AddedScopeCompleted");
+
+                var ts = bs + as;
+                var tip = bsip + asip;
+                var tc = bsc + asc;
+
+                var tb = bs+bsip+bsc;
+                var ta = as+asip+asc;
+                var tt = tb+ta;
+
+                 var tpl = Ext.create('Ext.Template', 
+                    // border='1'
+                    "<table >"+
+                    "<tr>"+
+                        "<td></td>"+
+                        "<td>Baseline</td>"+
+                        "<td>Added</td>"+
+                        "<td>Total</td>"+
+                    "</tr>"+
+
+                    "<tr>"+
+                        "<td>NotStarted</td>"+
+                        "<td>{bs}</td>"+
+                        "<td>{as}</td>"+
+                        "<td>{ts}</td>"+
+                    "</tr>"+
+
+                    "<tr>"+
+                        "<td>In-Progress</td>"+
+                        "<td>{bsip}</td>"+
+                        "<td>{asip}</td>"+
+                        "<td>{tip}</td>"+
+                    "</tr>"+
+
+                    "<tr>"+
+                        "<td>Completed</td>"+
+                        "<td>{bsc}</td>"+
+                        "<td>{asc}</td>"+
+                        "<td>{tc}</td>"+
+                    "</tr>"+
+
+                    "<tr>"+
+                        "<td>Total</td>"+
+                        "<td>{tb}</td>"+
+                        "<td>{ta}</td>"+
+                        "<td>{tt}</td>"+
+                    "</tr>"+
+                    "</table>",
+                    { compiled : true });
+
+                 return tpl.apply({bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
+                    as:labelPct(as,total),asip:labelPct(asip,total),asc:labelPct(asc,total),
+                    ts:labelPct(ts,total),tip:labelPct(tip,total),tc:labelPct(tc,total),
+                    tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
 
                 // var table = "<table><tr><th>Series</th><th>Total</th><th>%</th>"+
                 //     "<tr><td>NotStarted</td><td>"+notstarted+"</td><td>+" + pct(notstarted,total)+"</td></tr" +
                 //     "<tr><td>NotStarted</td><td>"+inprogress+"</td><td>+" + pct(inprogress,total)+"</td></tr" +
                 //     "<tr><td>NotStarted</td><td>"+completed+"</td><td>+" + pct(completed,total)+"</td></tr" +
                 //     "</table>"
-                return that.series.name + ' Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
-                    "<br>NotStarted:" + notstarted + " (" + pct(notstarted,total) + "%)" +
-                    "<br>In-Progress:" + inprogress + " (" + pct(inprogress,total) + "%)" +
-                    "<br>Completed:" + completed + " (" + pct(completed,total) + "%)"
+                // var table = "<table border='1'><tr><td>row1</td><td>col1</td></tr></table>";
+                
+                // return table + that.series.name + ' Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
+                //     "<br>NotStarted:" + notstarted + " (" + pct(notstarted,total) + "%)" +
+                //     "<br>In-Progress:" + inprogress + " (" + pct(inprogress,total) + "%)" +
+                //     "<br>Completed:" + completed + " (" + pct(completed,total) + "%)"
                     
-                // return 'Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total+"<br>"+
-                // table;
 
             }
         },
@@ -95,7 +164,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 point : {
                     events : {
                         click : function(a) {
-                            console.log(this);
+                            // console.log(this);
                             scope_change_chart.fireEvent("series_click",this);
                         }
                     }
@@ -123,7 +192,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
 
         this.chartData = config.chartData;
 
-        console.log(config);
+        // console.log(config);
         
         if (config.title){
             this.chartConfig.title = config.title;

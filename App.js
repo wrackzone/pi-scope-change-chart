@@ -118,7 +118,7 @@ Ext.define('CustomApp', {
 					bundle.releases = _.filter(records,function(r) {
 						return r.get("Name")===release.Name;
 					});
-					console.log( "Release Names:", _.map(bundle.releases,function(r){return r.get("Name")}));
+					// console.log( "Release Names:", _.map(bundle.releases,function(r){return r.get("Name")}));
 					// bundle.releases = records;
 					deferred.resolve(bundle);
 				},
@@ -168,8 +168,8 @@ Ext.define('CustomApp', {
 			
 			return objid === app.getContext().getProject().ObjectID ;
 		});
-		console.log("parentRelease",parentRelease);
-		console.log("release ids",_.map(releases,function(r){return r.get("ObjectID");}));
+		// console.log("parentRelease",parentRelease);
+		// console.log("release ids",_.map(releases,function(r){return r.get("ObjectID");}));
 
 		var deferred = new Deft.Deferred();
 		Ext.create('Rally.data.lookback.SnapshotStore', {
@@ -210,7 +210,7 @@ Ext.define('CustomApp', {
 		});
 
 		var dr = app.dateRange(bundle.release);
-		console.log(bundle.release,_.last(dr));
+		// console.log(bundle.release,_.last(dr));
 		// iterate each day of the release
 		// data is an array of objects; each object is keyed by the category and the key value is the 
 		// set of applicable features
@@ -242,7 +242,7 @@ Ext.define('CustomApp', {
 		bundle.todayIndex = _.findIndex(dr, function(r) {
 			return r.year() === today.year() && r.month() === today.month() && r.date() === today.date();
 		} );
-		console.log("today",bundle.todayIndex);
+		// console.log("today",bundle.todayIndex);
 
 		// get the index of the baseline date
 		bundle.baselineIndex = app.getBaselineIndex(dr,bundle.iterations);
@@ -401,7 +401,7 @@ Ext.define('CustomApp', {
     		this._createChart
     	]).then({
     		success : function(res) {
-    			console.log("res",res);
+    			// console.log("res",res);
     			app.bundle = res;
     		},
     		failure : function(res) {
