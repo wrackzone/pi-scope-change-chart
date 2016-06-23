@@ -480,6 +480,14 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var tt = tb+ta;
 
                  var tpl = Ext.create('Ext.Template', 
+                    "<table border=1>" + 
+                        "<tr>" +
+                            "<td>{series}</td>" +
+                            "<td>Day {day}</td>" +
+                            "<td>Value {value}</td>" +
+                        "</tr>" +
+                    "</table>" +
+                    "<br/>" +
                     // border='1'
                     "<table >"+
                     "<tr>"+
@@ -519,7 +527,10 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                     "</table>",
                     { compiled : true });
 
-                 return tpl.apply({bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
+                 return tpl.apply(
+                    {
+                    series: that.series.name, day: that.point.x, value: (that.point.y<0?that.point.y*-1:that.point.y),
+                    bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
                     as:labelPct(as,total),asip:labelPct(asip,total),asc:labelPct(asc,total),
                     ts:labelPct(ts,total),tip:labelPct(tip,total),tc:labelPct(tc,total),
                     tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
