@@ -99,14 +99,14 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var tt = tb+ta;
 
                  var tpl = Ext.create('Ext.Template', 
-                    "<table>" + 
+                    "<table width='100%'>" + 
                         "<tr>" +
                             // "<td><b>{series}</b></td>" +
                             "<td align='center'>Day {day} of {totaldays}</td>" +
                             // "<td>Value {value}</td>" +
                         "</tr>" +
                     "</table>" +
-                    "<br/>" +
+                    
                     // border='1'
                     "<table cellpadding='2'>"+
                     "<tr>"+
