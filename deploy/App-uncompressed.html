@@ -433,6 +433,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
             useHTML: true,
             formatter : function() {
                 var that = this;
+                var totaldays = that.series.data.length;
                 // console.log(this);
                 var pointVal = function(series) {
                     var val = series.data[that.point.x].y;
@@ -480,58 +481,61 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var tt = tb+ta;
 
                  var tpl = Ext.create('Ext.Template', 
-                    "<table border=1>" + 
+                    "<table>" + 
                         "<tr>" +
-                            "<td>{series}</td>" +
-                            "<td>Day {day}</td>" +
-                            "<td>Value {value}</td>" +
+                            // "<td><b>{series}</b></td>" +
+                            "<td align='center'>Day {day} of {totaldays}</td>" +
+                            // "<td>Value {value}</td>" +
                         "</tr>" +
                     "</table>" +
                     "<br/>" +
                     // border='1'
-                    "<table >"+
+                    "<table cellpadding='2'>"+
                     "<tr>"+
                         "<td></td>"+
-                        "<td>Baseline</td>"+
-                        "<td>Added</td>"+
-                        "<td>Total</td>"+
+                        "<td align='center'>Baseline</td>"+
+                        "<td align='center'>Added</td>"+
+                        "<td align='center'><b>Total</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
                         "<td>NotStarted</td>"+
-                        "<td>{bs}</td>"+
-                        "<td>{as}</td>"+
-                        "<td>{ts}</td>"+
+                        "<td align='right'>{bs}</td>"+
+                        "<td align='right'>{as}</td>"+
+                        "<td align='right'><b>{ts}</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
                         "<td>In-Progress</td>"+
-                        "<td>{bsip}</td>"+
-                        "<td>{asip}</td>"+
-                        "<td>{tip}</td>"+
+                        "<td align='right'>{bsip}</td>"+
+                        "<td align='right'>{asip}</td>"+
+                        "<td align='right'><b>{tip}</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
                         "<td>Completed</td>"+
-                        "<td>{bsc}</td>"+
-                        "<td>{asc}</td>"+
-                        "<td>{tc}</td>"+
+                        "<td align='right'>{bsc}</td>"+
+                        "<td align='right'>{asc}</td>"+
+                        "<td align='right'><b>{tc}</b></td>"+
                     "</tr>"+
 
                     "<tr>"+
-                        "<td>Total</td>"+
-                        "<td>{tb}</td>"+
-                        "<td>{ta}</td>"+
-                        "<td>{tt}</td>"+
+                        "<td><b>Total</b></td>"+
+                        "<td><b>{tb}</b></td>"+
+                        "<td><b>{ta}</b></td>"+
+                        "<td align='right'><b>{tt}</b></td>"+
                     "</tr>"+
                     "</table>",
                     { compiled : true });
 
                  return tpl.apply(
                     {
-                    series: that.series.name, day: that.point.x, value: (that.point.y<0?that.point.y*-1:that.point.y),
-                    bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
-                    as:labelPct(as,total),asip:labelPct(asip,total),asc:labelPct(asc,total),
+                    series: that.series.name, day: that.point.x, totaldays: totaldays,value: (that.point.y<0?that.point.y*-1:that.point.y),
+                    // bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
+                    // as:labelPct(as,total),asip:labelPct(asip,total),asc:labelPct(asc,total),
+                    bs:(bs),bsip:bsip,bsc:bsc,
+                    as:as,asip:asip,asc:asc,
+
                     ts:labelPct(ts,total),tip:labelPct(tip,total),tc:labelPct(tc,total),
                     tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
 
