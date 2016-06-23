@@ -188,10 +188,11 @@ Ext.define('CustomApp', {
 			},
 			fetch: app.fetch,
 			find: {
-				"_ProjectHierarchy": app.getContext().getProject().ObjectID,
+				// "Release" : Number(parentRelease.get("ObjectID")),
+				// "_ProjectHierarchy": app.getContext().getProject().ObjectID,
+				"Release" : { "$in" : _.map(releases,function(r){return r.get("ObjectID");})},
 				"_TypeHierarchy" : { "$in" : [_.first(bundle.piTypes).get("TypePath")] },
-				"Release" : { "$in" : _.map(releases,function(r){return r.get("ObjectID");})}
-				// "Release" : parentRelease.get("ObjectID")
+				
 			}
 			// sort: { "_ValidFrom": 1 },
 			// pageSize : 10000

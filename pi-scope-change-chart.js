@@ -72,7 +72,7 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 }
 
                 var labelPct = function(val,total) {
-                    return "" + val + " ("+pct(val,total)+")";
+                    return "" + val + " ("+pct(val,total)+"%)";
                 }
 
                 var total = _.reduce( this.series.chart.series, function(sum,series) {
