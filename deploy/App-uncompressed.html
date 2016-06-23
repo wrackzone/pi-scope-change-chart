@@ -485,6 +485,11 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 var ttp = pct(tt,total);
 
                 var tpl = Ext.create('Ext.Template', 
+                    "<table>" + 
+                        "<tr>" +
+                            "<td align='center'>Day {day} of {totaldays}</td>" +
+                        "</tr>" +
+                    "</table>" +
                     "<table cellpadding='2'>"+
                     "<tr>"+
                         "<td align='center'> </td>"+
