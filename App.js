@@ -329,7 +329,8 @@ Ext.define('CustomApp', {
 					var value = reducerFunction( d[key] );
 					// if it's not baseline multiply by -1 so it is shown below the x-axis
 					// value = key.startsWith("Baseline") ? value : value * -1;                        
-					value = key.includes("Baseline") ? value : value * -1;                        
+					// value = key.includes("Baseline") ? value : value * -1;                        
+					value = (key.indexOf("Baseline") > -1) ? value : value * -1;                        
 
 					return {
 						x : x, y : value, features : d[key]

@@ -441,7 +441,8 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 };
                 var sumSeries = function(seriesContains) {
                     return _.reduce( that.series.chart.series, function(sum,series) {
-                        return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
+                        // return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
+                        return sum + ( (series.name.indexOf(seriesContains) > -1) ? pointVal(series) : 0);
                     },0);
                 };
                 var getSeries = function(seriesName) {
@@ -968,7 +969,8 @@ Ext.define('CustomApp', {
 					var value = reducerFunction( d[key] );
 					// if it's not baseline multiply by -1 so it is shown below the x-axis
 					// value = key.startsWith("Baseline") ? value : value * -1;                        
-					value = key.includes("Baseline") ? value : value * -1;                        
+					// value = key.includes("Baseline") ? value : value * -1;                        
+					value = (key.indexOf("Baseline") > -1) ? value : value * -1;                        
 
 					return {
 						x : x, y : value, features : d[key]

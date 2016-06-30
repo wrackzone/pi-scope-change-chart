@@ -59,7 +59,8 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                 };
                 var sumSeries = function(seriesContains) {
                     return _.reduce( that.series.chart.series, function(sum,series) {
-                        return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
+                        // return sum + (series.name.includes(seriesContains) ? pointVal(series) : 0);
+                        return sum + ( (series.name.indexOf(seriesContains) > -1) ? pointVal(series) : 0);
                     },0);
                 };
                 var getSeries = function(seriesName) {
