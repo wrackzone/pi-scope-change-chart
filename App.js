@@ -595,6 +595,8 @@ Ext.define('CustomApp', {
 			filters : [filter],
 			autoLoad: true,
 			enableHierarchy: true,
+			enablePostGet : true,
+			enableRootLevelPostGet : true,
 			listeners : {
 				load : function(a,b,c) {
 				}
