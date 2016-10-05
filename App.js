@@ -19,7 +19,7 @@ Ext.define('CustomApp', {
 	fetch : ['FormattedID','ObjectID', '_ValidTo', '_ValidFrom', 'PreliminaryEstimate',
 		'AcceptedLeafStoryCount', 'AcceptedLeafStoryPlanEstimateTotal', 
 		'LeafStoryCount', 'LeafStoryPlanEstimateTotal','PercentDoneByStoryCount',
-		'PercentDoneByStoryPlanEstimate','Predecessors','Name'],
+		'PercentDoneByStoryPlanEstimate','Predecessors','Name','ActualEndDate','ActualStartDate'],
 
 	seriesKeys : ['BaselineScope','BaselineScopeInProgress','BaselineScopeCompleted','AddedScope','AddedScopeInProgress','AddedScopeCompleted'],
 
@@ -275,12 +275,19 @@ Ext.define('CustomApp', {
 			};
 
 			var progressFunction = function(feature) {
-				if (feature.PercentDoneByStoryCount === 0)
-					return 'Scope';
-				if ( (feature.PercentDoneByStoryCount >= 0) && (feature.PercentDoneByStoryCount < 1) )
-					return 'ScopeInProgress';
-				if (feature.PercentDoneByStoryCount === 1)
-					return 'ScopeCompleted';
+
+				if ((feature.ActualEndDate != null) && (feature.ActualEndDate != "")) 
+				 	return "ScopeCompleted";
+				if ((feature.ActualStartDate != null) && (feature.ActualStartDate != "")) 
+					return "ScopeInProgress";
+				return "Scope";
+     
+				// if (feature.PercentDoneByStoryCount === 0)
+				// 	return 'Scope';
+				// if ( (feature.PercentDoneByStoryCount >= 0) && (feature.PercentDoneByStoryCount < 1) )
+				// 	return 'ScopeInProgress';
+				// if (feature.PercentDoneByStoryCount === 1)
+				// 	return 'ScopeCompleted';
 			};
 
 			return scopeFunction(feature) + progressFunction(feature);
@@ -616,23 +623,18 @@ Ext.define('CustomApp', {
 					shouldShowRowActionsColumn: false,
 					enableRanking: false,
 					columnCfgs: [
-						'Name', 'Predecessors', 'State', 'Release', 'Project',
-						{ dataIndex : 'PreliminaryEstimate', text : 'Size'},
-						{ dataIndex : 'PercentDoneByStoryCount', text : '% (C)'},
-						{ dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% (P)'},
-						{ dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Points'},
-						{ dataIndex : 'LeafStoryCount', text : 'Count'}
-					]
+                        'Project','Name',   'Release', 
+						{ dataIndex : 'PreliminaryEstimate', text : 'Preliminary Size'},
+                        { dataIndex : 'LeafStoryPlanEstimateTotal', text: 'Leaf Story Points'},
+						{ dataIndex : 'LeafStoryCount', text : 'Leaf Story Count'},
+                        'State',  
+						{ dataIndex : 'PercentDoneByStoryCount', text : '% Done by Count'},
+                        { dataIndex : 'PercentDoneByStoryPlanEstimate', text : '% Done by Story Points'},
+						'ActualStartDate', 'ActualEndDate', 'ScheduleState', 'Owner', 'Milestones'
+                    ]
 				});
 
 				that.tabPanel = Ext.create('Ext.tab.Panel', {
-					// tabBar: {
-					//     layout: {
-					//         type: 'hbox',
-					//         align: 'stretch'
-					//     },
-					//     defaults: { flex: 1 }
-					// },
 				    items: [{
 				        title: 'Series',
 				        items : [that.itemsTable]
