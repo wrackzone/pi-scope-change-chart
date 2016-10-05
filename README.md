@@ -1,7 +1,7 @@
 Portfolio Item Scope Change Chart
 =================================
 
-Barry Mullan (December 2015) 
+Barry Mullan / Heather Kanser (December 2015) 
 
 ## Overview
 
