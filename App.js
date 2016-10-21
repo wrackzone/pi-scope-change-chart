@@ -146,7 +146,11 @@ Ext.define('CustomApp', {
 				"EndDate"
 			).then({
 				success : function(records) {
-					bundle.iterations = records;
+					// bundle.iterations = records;
+					bundle.iterations = _.sortBy(iterations,function(i){
+    					return i.get("EndDate");
+					});
+					
 					if (records.length>0)
 						deferred.resolve(bundle);
 					else

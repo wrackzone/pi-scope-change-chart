@@ -164,31 +164,13 @@ Ext.define('Rally.technicalservices.scopeChangeChart',{
                  return tpl.apply(
                     {
                     series: that.series.name, day: that.point.x, totaldays: totaldays,value: (that.point.y<0?that.point.y*-1:that.point.y),
-                    // bs:labelPct(bs,total),bsip:labelPct(bsip,total),bsc:labelPct(bsc,total),
-                    // as:labelPct(as,total),asip:labelPct(asip,total),asc:labelPct(asc,total),
                     bs:(bs),bsip:bsip,bsc:bsc,
                     as:as,asip:asip,asc:asc,
-
                     ts:ts,tip:tip,tc:tc,
-                    // tb:labelPct(tb,total),ta:labelPct(ta,total),tt:labelPct(tt,total) });
                     tb:tb,ta:ta,tt:tt,
                     tbp:tbp,tsp:tsp,ttp:ttp,
                     tnsp:pct(ts,total),tipp:pct(tip,total),tcp:pct(tc,total)
                 });
-
-                // var table = "<table><tr><th>Series</th><th>Total</th><th>%</th>"+
-                //     "<tr><td>NotStarted</td><td>"+notstarted+"</td><td>+" + pct(notstarted,total)+"</td></tr" +
-                //     "<tr><td>NotStarted</td><td>"+inprogress+"</td><td>+" + pct(inprogress,total)+"</td></tr" +
-                //     "<tr><td>NotStarted</td><td>"+completed+"</td><td>+" + pct(completed,total)+"</td></tr" +
-                //     "</table>"
-                // var table = "<table border='1'><tr><td>row1</td><td>col1</td></tr></table>";
-                
-                // return table + that.series.name + ' Day:'+this.point.x+" Value:"+ (this.point.y<0 ? this.point.y*-1:this.point.y) + " Total:"+total +"<br>"+
-                //     "<br>NotStarted:" + notstarted + " (" + pct(notstarted,total) + "%)" +
-                //     "<br>In-Progress:" + inprogress + " (" + pct(inprogress,total) + "%)" +
-                //     "<br>Completed:" + completed + " (" + pct(completed,total) + "%)"
-                    
-
             }
         },
 
