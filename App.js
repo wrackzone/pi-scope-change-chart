@@ -257,6 +257,9 @@ Ext.define('CustomApp', {
 					}
 					bundle.snapshots = snapshots;
 					console.log("snapshots:",snapshots.length);
+					
+					// localStorage.setItem('testObject', JSON.stringify(snapshots));
+
 					deferred.resolve(bundle);
 				}
 			},

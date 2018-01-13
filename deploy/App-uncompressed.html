@@ -903,6 +903,9 @@ Ext.define('CustomApp', {
 					}
 					bundle.snapshots = snapshots;
 					console.log("snapshots:",snapshots.length);
+					
+					// localStorage.setItem('testObject', JSON.stringify(snapshots));
+
 					deferred.resolve(bundle);
 				}
 			},
@@ -1508,14 +1511,12 @@ Ext.define('CustomApp', {
     </script>
 
 
-
     <style type="text/css">
         .app {
-  /* Add app styles here */
+     /* Add app styles here */
 }
 
     </style>
 </head>
-<body>
-</body>
+<body></body>
 </html>
